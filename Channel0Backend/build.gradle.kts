@@ -17,6 +17,8 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("com.bucket4j:bucket4j-core:8.0.1")
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-web")

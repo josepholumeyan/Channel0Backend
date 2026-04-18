@@ -10,7 +10,7 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 1
       idle-timeout: 60000
-      max-lifetime: 180000
+      max-lifetime: 1200000
       keepalive-time: 30000
       connection-timeout: 30000
       validation-timeout: 5000
@@ -30,3 +30,6 @@ spring:
           order_inserts: true
           order_updates: true
           batch_versioned_data: true
+
+admin:
+  key: ${ADMIN_KEY}
