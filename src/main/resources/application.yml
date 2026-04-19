@@ -1,3 +1,6 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: Channel0-backend
@@ -21,8 +24,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         jdbc:
@@ -30,6 +33,12 @@ spring:
           order_inserts: true
           order_updates: true
           batch_versioned_data: true
+
+logging:
+  level:
+    root: INFO
+    com.example.channel0: DEBUG
+
 
 admin:
   key: ${ADMIN_KEY}

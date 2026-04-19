@@ -9,7 +9,7 @@ The Channel0 backend is responsible for playback orchestration, user progress tr
 
 It determines what content should play next and ensures playback remains continuous even when underlying video sources fail.
 
-> This backend powers the Channel0 Android client.
+> This backend powers the [Channel0 Android client](https://github.com/josepholumeyan/Channel0).
 
 ## Core Responsibilities
 
