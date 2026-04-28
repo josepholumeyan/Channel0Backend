@@ -33,4 +33,13 @@ class AdminController(
         return mapper.episodeToAdminDto(adminService.getDisabledEpisodes())
     }
 
+    @GetMapping("/get-user-count")
+    fun getUserCount(): Long {
+        return adminService.getUserCount()
+    }
+
+    @GetMapping("/get-device-count")
+    fun getDeviceCount(): Long {
+        return adminService.getDeviceCount()
+    }
 }

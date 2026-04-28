@@ -2,6 +2,9 @@ package channel0.data.repositories
 
 import channel0.data.entities.userBased.UserChannelShow
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -42,4 +45,8 @@ interface UserChannelShowRepository : JpaRepository <UserChannelShow, Long> {
         showId: String,
         userId: Long
     ): UserChannelShow?
+
+    @Modifying
+    @Query("DELETE FROM UserChannelShow ucs WHERE ucs.userId = :userId")
+    fun deleteUserChannelShows(@Param("userId") userId: Long)
 }

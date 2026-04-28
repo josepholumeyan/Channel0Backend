@@ -3,17 +3,9 @@ package channel0.domain.services
 import channel0.data.entities.global.ChannelShowEntity
 import channel0.data.entities.userBased.UserChannelProgress
 import channel0.data.entities.userBased.UserChannelShow
-import channel0.data.entities.userBased.UserShowProgress
 import channel0.data.entities.userBased.UserEntity
-import channel0.data.repositories.ChannelRepository
-import channel0.data.repositories.ChannelShowRepository
-import channel0.data.repositories.EpisodeRepository
-import channel0.data.repositories.SeasonRepository
-import channel0.data.repositories.SegmentRepository
-import channel0.data.repositories.UserChannelProgressRepository
-import channel0.data.repositories.UserChannelShowRepository
-import channel0.data.repositories.UserShowProgressRepository
-import channel0.data.repositories.UserRepository
+import channel0.data.entities.userBased.UserShowProgress
+import channel0.data.repositories.*
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
@@ -23,6 +15,7 @@ class UserService(
     private val userChannelShowRepository: UserChannelShowRepository,
     private val userShowProgressRepository: UserShowProgressRepository,
     private val userChannelProgressRepository: UserChannelProgressRepository,
+    private val deviceRepository: DeviceRepository,
     private val channelShowRepository: ChannelShowRepository,
     private val channelRepository: ChannelRepository,
     private val seasonRepository: SeasonRepository,
@@ -31,23 +24,15 @@ class UserService(
 ) {
 
     /**
-     * Creates a new user in the system if one does not already exist.
+     * Creates a new user for a device or returns existing session.
      *
-     * @param userId The unique identifier of the user.
+     * If device exists: updates lastSeen and returns empty string.
+     * If new device: creates user + device record and returns raw token once.
      *
-     * This is lazy creation: we only insert a user if they are interacting
-     * with the system for the first time. This prevents unnecessary database
-     * rows for inactive users.
+     * Device token is stored as a hash, not plain text.
      */
     @Transactional
-    fun createUser(userId: Long? = null): Long {
-
-        // reuse existing user
-        if (userId != null && userRepository.existsById(userId)) {
-            return userId
-        }
-
-        // create new user
+    fun createUser(): Long {
         val user = userRepository.save(UserEntity(null))
         return user.id!!
     }
@@ -170,5 +155,16 @@ class UserService(
         )
         userChannelProgressRepository.save(channelProgress)
         return channelProgress
+    }
+
+
+
+    @Transactional
+    fun deleteUserData(userId: Long){
+        userRepository.deleteById(userId)
+        userShowProgressRepository.deleteUserShowsProgress(userId)
+        userChannelProgressRepository.deleteUserChannelProgress(userId)
+        userChannelShowRepository.deleteUserChannelShows(userId)
+        deviceRepository.deleteUserDevices(userId)
     }
 }

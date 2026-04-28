@@ -11,10 +11,12 @@ import channel0.data.entities.global.SegmentEntity
 import channel0.data.entities.global.ShowEntity
 import channel0.data.repositories.ChannelRepository
 import channel0.data.repositories.ChannelShowRepository
+import channel0.data.repositories.DeviceRepository
 import channel0.data.repositories.EpisodeRepository
 import channel0.data.repositories.SeasonRepository
 import channel0.data.repositories.SegmentRepository
 import channel0.data.repositories.ShowRepository
+import channel0.data.repositories.UserRepository
 import channel0.domain.validation.validate
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Service
 @Service
 class AdminService(
     private val channelRepo: ChannelRepository,
+    private val userRepo: UserRepository,
+    private val deviceRepo: DeviceRepository,
     private val showRepo: ShowRepository,
     private val seasonRepo: SeasonRepository,
     private val episodeRepo: EpisodeRepository,
@@ -142,4 +146,13 @@ class AdminService(
     fun getDisabledEpisodes():List<EpisodeEntity> {
         return episodeRepo.getDisabledEpisodes()
     }
+
+    fun getUserCount():Long {
+        return this@AdminService.userRepo.count()
+    }
+
+    fun getDeviceCount():Long {
+        return deviceRepo.count()
+    }
+
 }

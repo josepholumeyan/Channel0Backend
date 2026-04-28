@@ -1,6 +1,4 @@
-package channel0.backend.data.dto.request
-
-import channel0.data.dto.request.ShowRequest
+package channel0.data.dto.request
 
 data class ChannelRequest(
     val id: String,

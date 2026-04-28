@@ -1,6 +1,6 @@
 package channel0.domain.validation
 
-import channel0.backend.data.dto.request.ChannelRequest
+import channel0.data.dto.request.ChannelRequest
 import channel0.backend.data.dto.request.EpisodeRequest
 import channel0.data.dto.request.PopulateRequest
 import channel0.data.dto.request.SeasonRequest

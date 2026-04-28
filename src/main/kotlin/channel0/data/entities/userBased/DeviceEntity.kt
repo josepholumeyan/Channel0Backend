@@ -6,14 +6,19 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import java.sql.Timestamp
 
 @Entity
-@Table(name = "Users",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["id"])]
-    )
-data class UserEntity(
+@Table(name = "Devices",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["deviceId"])]
+)
+data class DeviceEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY )
     val id: Long?,
-    val deviceWatching: String? = null
+    val deviceId : String,
+    var deviceToken : String,
+    val userId: Long,
+    var timeRegistered: Timestamp,
+    var lastSeen: Timestamp
 )

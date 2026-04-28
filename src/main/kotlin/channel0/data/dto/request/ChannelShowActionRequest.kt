@@ -1,6 +1,5 @@
-package channel0.backend.data.dto.request
+package channel0.data.dto.request
 
 data class ChannelShowActionRequest(
-    val userId:Long,
     val showIds: List<String>
 )
