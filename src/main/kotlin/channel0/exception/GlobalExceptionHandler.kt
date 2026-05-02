@@ -13,6 +13,17 @@ class GlobalExceptionHandler {
     private val log =
         LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
+    @ExceptionHandler(AppException::class)
+    fun handleAppException(e: AppException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity.status(e.status)
+            .body(
+                ErrorResponse(
+                    message = e.message,
+                    status = e.status
+                )
+            )
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleGenericException(e: Exception): ResponseEntity<ErrorResponse> {
         log.error("Unhandled exception", e)

@@ -1,0 +1,32 @@
+{
+  "channels": [
+    {
+      "id": "b7f4a28d",
+      "name": "SampleChannel",
+      "shows": [
+        {
+          "id": "2d1a2038",
+          "name": "SampleShow",
+          "seasons": [
+            {
+              "id": "SampleSeason",
+              "number": 1,
+              "episodes": [
+                {
+                  "id": "SampleEpisode",
+                  "number": 1,
+                  "segments": [
+                    {
+                      "videoId": "xma0Alh2tdc",
+                      "fallbackVideoID": null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

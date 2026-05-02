@@ -45,6 +45,7 @@ bin/
 # Local environment files
 .env
 *.env
+local.properties
 
 # Secrets / configs
 application-local.properties

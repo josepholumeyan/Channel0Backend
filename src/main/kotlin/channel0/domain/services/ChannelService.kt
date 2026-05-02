@@ -7,6 +7,7 @@ import channel0.data.repositories.ChannelRepository
 import channel0.data.repositories.ChannelShowRepository
 import channel0.data.repositories.UserChannelProgressRepository
 import channel0.data.repositories.UserChannelShowRepository
+import channel0.exception.BadRequestException
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
@@ -62,7 +63,7 @@ class ChannelService(
             userChannelShowRepository.findByChannelIdAndUserIdAndClipFalseAndEnabledTrueOrderByPosition(channelId,userId)
 
         if (userChannelShows.isEmpty()) {
-            error("User has no enabled show")
+            throw BadRequestException("User has no enabled show")
         }
 
         return userChannelShows
@@ -103,7 +104,7 @@ class ChannelService(
         for ( showId in showIds) {
             val channelShow =
                 userChannelShowRepository.findByChannelIdAndShowIdAndUserId(channelId, showId, userId)
-                    ?: error("show not found")
+                    ?: throw BadRequestException("show not found")
 
             channelShow.enabled = false
             channelShows.add(channelShow)
@@ -124,7 +125,7 @@ class ChannelService(
         for ( showId in showIds) {
             val channelShow =
                 userChannelShowRepository.findByChannelIdAndShowIdAndUserId(channelId, showId, userId)
-                    ?: error("show not found")
+                    ?: throw BadRequestException("show not found")
 
             channelShow.enabled = true
             channelShows.add(channelShow)

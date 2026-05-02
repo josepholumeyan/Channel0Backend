@@ -13,6 +13,7 @@ import channel0.data.repositories.SegmentRepository
 import channel0.data.repositories.UserChannelProgressRepository
 import channel0.data.repositories.UserChannelShowRepository
 import channel0.data.repositories.UserShowProgressRepository
+import channel0.exception.BadRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -349,7 +350,7 @@ class PlaybackService(
                 )
             }
 
-            if (channelClipShows.isEmpty()) error("no clip shows for this channel")
+            if (channelClipShows.isEmpty()) throw BadRequestException("no clip shows enabled for this channel")
             val show = channelClipShows.getOrElse(channelProgress.currentClipShowIndex) {
                 channelProgress.currentClipShowIndex = 0
                 channelClipShows[0]
@@ -371,7 +372,7 @@ class PlaybackService(
                     channelProgress.userId
                 )
             }
-            if (channelShows.isEmpty()) error("no shows for this channel")
+            if (channelShows.isEmpty()) throw BadRequestException("no shows for this channel")
             val channelShow = channelShows.getOrElse(channelProgress.currentShowIndex) {
                 channelProgress.currentShowIndex = 0
                 channelShows[0]

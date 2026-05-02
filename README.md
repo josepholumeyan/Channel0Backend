@@ -109,6 +109,96 @@ src/main/kotlin/com/example/channel0
 ```
 ---
 
+##  Getting Started
+
+To run this project locally or deploy your own instance, follow the steps below.
+
+---
+
+### 1. Setup your database (PostgreSQL)
+
+- Install and run PostgreSQL
+- Create a new database
+- Update your environment variables with your database credentials
+
+---
+
+### 2. Configure environment variables
+
+Create a `.env` file in the root directory and define:
+
+```bash
+SPRING_DATASOURCE_URL=your_postgres_connection_string
+SPRING_DATASOURCE_USERNAME=your_postgres_connection_user_name
+SPRING_DATASOURCE_PASSWORD=your_postgres_connection_password
+ADMIN_KEY=your_secure_admin_key
+```
+
+> `ADMIN_KEY` is required to authorize admin-level operations such as data population.
+
+---
+
+### 3. Prepare initial data
+
+This project does not ship with a preloaded database.
+
+- A [sample.json](src/main/resources/sample.json) file is provided to demonstrate the expected data structure
+- Use this as a reference when preparing your own dataset for population
+
+> ⚠️ Note: The sample file only contains a minimal dataset for demonstration purposes.  
+> You are expected to supply your own data when running this project.
+
+
+---
+
+### 4. Populate the database
+
+Send a POST request to:
+
+POST /admin/populate
+
+#### Headers:
+
+X_ADMIN_KEY: your_secure_admin_key Content-Type: application/json
+
+#### Body:
+- Include your dataset JSON
+
+This will seed your database with channels, shows, and related data.
+
+---
+
+### 5. Run the server
+
+Start the application locally:
+
+./gradlew bootRun
+
+Or deploy to any cloud platform of your choice.
+
+---
+
+### 6. Connect the Android client
+
+- Copy your server's base URL (local or deployed)
+- Add it to the Android app( app/src/main/java/com/intricatelabs/channel0/di/NetworkModule.kt ):
+
+BASE_URL=your_backend_url
+
+[Channel0 Android client](https://github.com/josepholumeyan/Channel0/blob/main/app/src/main/java/com/intricatelabs/channel0/di/NetworkModule.kt)
+
+---
+
+## 📌 Notes
+
+- Each developer should run their own backend instance
+- Do not rely on any external or shared database
+- This project is intended for learning, experimentation, and portfolio use
+
+
+---
+
+
 ## Design Notes
 
 - Playback failures are treated as state transitions
@@ -117,6 +207,52 @@ src/main/kotlin/com/example/channel0
 - The system prioritizes continuity over strict completeness
 
 ---
+
+##  Disclaimer
+
+This backend service is part of the **Channel0 demonstration ecosystem**, built to explore content structuring, metadata curation, and backend-to-client data workflows for an Android-based media application.
+
+
+This project does **not host, upload, stream, or distribute any video content**.
+
+
+It solely manages structured metadata consumed by the Android client.  
+All media playback is handled externally via the **YouTube embedded player** within the client application.
+
+
+All video content remains the property of its respective rights holders.
+
+
+This project is:
+- not affiliated with YouTube
+- not endorsed by YouTube
+- not connected to any content providers
+
+
+---
+
+
+## Intended Use
+
+
+This project is provided strictly for:
+- educational purposes
+- backend system design demonstration
+- portfolio and technical showcase
+
+
+It is not intended to function as a production streaming service or content distribution platform.
+
+
+---
+
+
+##  Notes
+
+
+- API structure, endpoints, and data contracts may evolve as the system is refined or adjusted for compliance with third-party platform policies.
+- This repository represents a **technical prototype**, not a commercial product.
+
 
 ## License
 

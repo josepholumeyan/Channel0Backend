@@ -1,13 +1,41 @@
 Copyright (c) 2026 Joseph Olumeyan
 
-This source code is provided for educational and evaluation purposes only.
 
-You may view and study the code, but you may not:
-- Use it for commercial purposes
-- Redistribute it
-- Publish derivative works
-- Deploy it to any app store
+All rights reserved.
 
-Explicit written permission is required for any other use.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+This project ("Channel0") is source-available for educational, evaluation, and portfolio demonstration purposes only.
+
+
+## Permitted Use
+You are allowed to:
+- View and study the source code
+- Clone the repository for personal learning
+- Run the project locally for testing and evaluation
+- Use it as a reference for educational purposes
+
+
+## Restricted Use
+You are NOT permitted to:
+- Use this project or its components for commercial purposes
+- Redistribute this project or modified versions of it
+- Publish derivative works as your own product
+- Deploy this project to production environments or app stores
+- Remove or alter copyright notices or attribution
+
+
+## Content & Third-Party Services
+This project does not host, upload, or distribute video content.
+All media playback is handled via the YouTube embedded player in the client application.
+
+
+This project is not affiliated with, endorsed by, or connected to YouTube or any content providers.
+
+
+## Disclaimer
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+THE AUTHOR IS NOT RESPONSIBLE FOR ANY DAMAGES, MISUSE, OR CONSEQUENCES ARISING FROM THE USE OF THIS SOFTWARE.
+
+
+## Additional Note
+Any use beyond the scope defined above requires explicit written permission from the author.
