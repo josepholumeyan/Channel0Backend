@@ -17,11 +17,12 @@ data class UserShowProgress(
     @GeneratedValue(strategy = GenerationType.IDENTITY )
     val id: Long?,
     val userId: Long,
-    var showId: String,
+    val showId: String,
+    val showName:String,
     var currentSeasonId: String?,
     var currentEpisodeId: String?,
-    var currentSegmentId: Long?,
+    var stagedSegmentId: Long?,
     var currentSeasonIndex: Int = 0,
     var currentEpisodeIndex: Int = 0,
-    var currentSegmentIndex: Int = 0
+    var stagedSegmentIndex: Int = 0
 )

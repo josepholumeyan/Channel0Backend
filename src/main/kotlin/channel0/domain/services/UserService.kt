@@ -56,28 +56,35 @@ class UserService(
      * interacts with a show.
      */
     @Transactional
-    fun createUserShowProgress(showId: String, userId: Long): UserShowProgress {
+    fun getOrCreateUserShowProgress(showId: String, userId: Long, showName:String? = null): UserShowProgress {
         val existing = userShowProgressRepository.findByShowIdAndUserId(showId,userId)
         if (existing != null) return existing
 
         val currentSeasonId = seasonRepository.findFirstSeasonIdByShowId(showId)
-        var currentSegmentId :Long? = null
+        var stagedSegmentId :Long? = null
         var currentEpisodeId : String? = null
         if (currentSeasonId != null){
             currentEpisodeId = episodeRepository.findEpisodeIdsBySeasonId(currentSeasonId).getOrNull(0)
-            currentSegmentId = if (currentEpisodeId != null) segmentRepository.findSegmentIdsByEpisodeId(currentEpisodeId).getOrNull(0) else null
+            stagedSegmentId = if (currentEpisodeId != null) segmentRepository.findSegmentIdsByEpisodeId(currentEpisodeId).getOrNull(0) else null
+        }
+
+        var showName = showName
+
+        if(showName == null){
+            showName = channelShowRepository.findNameByShowId(showId)?: "Unknown Show"
         }
 
         val progress = UserShowProgress(
             id = null,
             userId = userId,
             showId = showId,
+            showName = showName,
             currentSeasonId = currentSeasonId,
             currentEpisodeId = currentEpisodeId,
-            currentSegmentId = currentSegmentId,
+            stagedSegmentId = stagedSegmentId,
             currentSeasonIndex = 0,
             currentEpisodeIndex = 0,
-            currentSegmentIndex = 0
+            stagedSegmentIndex = 0
         )
         userShowProgressRepository.save(progress)
         return progress
@@ -138,7 +145,7 @@ class UserService(
      * This ensures lazy creation of channel progress tracking for new users.
      */
     @Transactional
-    fun createUserChannelProgress(channelId: String,userId: Long ): UserChannelProgress {
+    fun getOrCreateUserChannelProgress(channelId: String, userId: Long ): UserChannelProgress {
         val existing = userChannelProgressRepository.findByChannelIdAndUserId(channelId,userId)
         if (existing != null) return existing
 

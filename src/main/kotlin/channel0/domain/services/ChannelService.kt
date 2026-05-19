@@ -99,38 +99,54 @@ class ChannelService(
      * during playback scheduling.
      */
     @Transactional
-    fun disableShow(channelId:String, showIds: List<String>, userId: Long) {
-        val channelShows = mutableListOf<UserChannelShow>()
-        for ( showId in showIds) {
-            val channelShow =
-                userChannelShowRepository.findByChannelIdAndShowIdAndUserId(channelId, showId, userId)
-                    ?: throw BadRequestException("show not found")
+    fun disableShow(channelId: String, showIds: List<String>, userId: Long) {
+        if (showIds.isEmpty()) return
 
-            channelShow.enabled = false
-            channelShows.add(channelShow)
+
+        val updated = userChannelShowRepository.updateEnabledForShows(
+            channelId = channelId,
+            userId = userId,
+            showIds = showIds.distinct(),
+            enabled = false
+        )
+
+
+        if (updated != showIds.distinct().size) {
+            throw BadRequestException("show not found")
         }
-        userChannelShowRepository.saveAll(channelShows)
-        val channelProgress = userChannelProgressRepository.findByChannelIdAndUserId(channelId, userId)?: return
-        channelProgress.currentShowId = null // set convenient lookup to null in case of the scenario where current show has been disabled
-        userChannelProgressRepository.save(channelProgress)
+
+
+        val channelProgress = userChannelProgressRepository.findByChannelIdAndUserId(channelId, userId) ?: return
+        if (channelProgress.currentShowId in showIds) {
+            channelProgress.currentShowId = null
+            userChannelProgressRepository.save(channelProgress)
+        }
     }
+
+
+
 
 
     /**
      * Enables a previously disabled show for a user.
      */
+    //    TODO Optimise you can just use a query to update them all at once
     @Transactional
-    fun enableShow(channelId:String, showIds: List<String>, userId: Long) {
-        val channelShows = mutableListOf<UserChannelShow>()
-        for ( showId in showIds) {
-            val channelShow =
-                userChannelShowRepository.findByChannelIdAndShowIdAndUserId(channelId, showId, userId)
-                    ?: throw BadRequestException("show not found")
+    fun enableShow(channelId: String, showIds: List<String>, userId: Long) {
+        if (showIds.isEmpty()) return
 
-            channelShow.enabled = true
-            channelShows.add(channelShow)
+
+        val updated = userChannelShowRepository.updateEnabledForShows(
+            channelId = channelId,
+            userId = userId,
+            showIds = showIds.distinct(),
+            enabled = true
+        )
+
+
+        if (updated != showIds.distinct().size) {
+            throw BadRequestException("show not found")
         }
-        userChannelShowRepository.saveAll(channelShows)
     }
 
 
@@ -141,9 +157,7 @@ class ChannelService(
      * one will be created lazily.
      */
     fun getCurrentShowId(channelId: String, userId: Long): String?{
-        val userChannelProgress =
-            userChannelProgressRepository.findByChannelIdAndUserId(channelId,userId)
-                ?: userService.createUserChannelProgress(channelId,userId)
+        val userChannelProgress = userService.getOrCreateUserChannelProgress(channelId,userId)
 
         return userChannelProgress.currentShowId
     }
@@ -155,9 +169,7 @@ class ChannelService(
      * Clip shows act as **interstitial content** between main shows.
      */
     fun getCurrentClipShowId(channelId: String, userId: Long): String?{
-        val userChannelProgress =
-            userChannelProgressRepository.findByChannelIdAndUserId(channelId,userId)
-                ?: userService.createUserChannelProgress(channelId,userId)
+        val userChannelProgress = userService.getOrCreateUserChannelProgress(channelId,userId)
 
         return userChannelProgress.currentClipShowId
     }

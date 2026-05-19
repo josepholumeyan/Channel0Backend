@@ -46,6 +46,22 @@ interface UserChannelShowRepository : JpaRepository <UserChannelShow, Long> {
         userId: Long
     ): UserChannelShow?
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+    update UserChannelShow u
+    set u.enabled = :enabled
+    where u.channelId = :channelId
+      and u.userId = :userId
+      and u.showId in :showIds
+""")
+    fun updateEnabledForShows(
+        channelId: String,
+        userId: Long,
+        showIds: List<String>,
+        enabled: Boolean
+    ): Int
+
+
     @Modifying
     @Query("DELETE FROM UserChannelShow ucs WHERE ucs.userId = :userId")
     fun deleteUserChannelShows(@Param("userId") userId: Long)

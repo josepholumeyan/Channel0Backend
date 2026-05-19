@@ -21,6 +21,14 @@ interface ChannelShowRepository : JpaRepository<ChannelShowEntity, ChannelShowId
     //get clip channelShows
     fun findByIdChannelIdAndClipTrueOrderByOrderIndexAsc(channelId: String): List<ChannelShowEntity>
 
+    @Query("""
+    select c.name
+    from ChannelShowEntity c
+    where c.id.showId = :showId
+""")
+    fun findNameByShowId(showId: String): String?
+
+
     // getChannelShow(channelId, showId)
     fun findByIdChannelIdAndIdShowId(channelId: String, showId: String): ChannelShowEntity?
 

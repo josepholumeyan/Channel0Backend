@@ -4,13 +4,17 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import java.sql.Timestamp
 
 @Entity
 @Table(name = "Devices",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["deviceId"])]
+    uniqueConstraints = [UniqueConstraint(columnNames = ["deviceId"])],
+    indexes = [
+        Index(name = "idx_device_user", columnList = "userId")
+    ]
 )
 data class DeviceEntity(
     @Id

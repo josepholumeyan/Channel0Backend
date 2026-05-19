@@ -4,8 +4,6 @@ import channel0.AuthUtils
 import channel0.data.dto.request.ChannelShowActionRequest
 import channel0.data.dto.request.PlaybackErrorRequest
 import channel0.data.dto.responses.PlayableDto
-import channel0.data.repositories.UserChannelProgressRepository
-import channel0.data.repositories.UserShowProgressRepository
 import channel0.domain.services.ChannelService
 import channel0.domain.services.PlaybackService
 import channel0.domain.services.ShowService
@@ -25,9 +23,7 @@ class PlaybackController(
     private val playbackService: PlaybackService,
     private val userService: UserService,
     private val channelService : ChannelService,
-    private val showService: ShowService,
-    private val userShowProgressRepository: UserShowProgressRepository,
-    private val userChannelProgressRepository: UserChannelProgressRepository
+    private val showService: ShowService
 ) {
 
     private val log = LoggerFactory.getLogger(PlaybackController::class.java)
@@ -37,20 +33,18 @@ class PlaybackController(
         @RequestParam channelId: String,
     ): PlayableDto {
 
+        println("Starting request time is ${System.currentTimeMillis()}")
+
         val userId = AuthUtils.getUserId()
 
-        val channelProgress = userChannelProgressRepository
-            .findByChannelIdAndUserId(channelId, userId)
-            ?: userService.createUserChannelProgress(channelId, userId)
+        val channelProgress = userService.getOrCreateUserChannelProgress(channelId, userId)
 
         log.debug("ChannelProgress → showId=${channelProgress.currentShowId}, index=${channelProgress.currentShowIndex}")
 
         val showId = channelProgress.currentShowId
             ?: playbackService.resolveCurrentChannelShowId(channelProgress)
 
-        val showProgress = userShowProgressRepository
-            .findByShowIdAndUserId(showId, userId)
-            ?: userService.createUserShowProgress(showId, userId)
+        val showProgress = userService.getOrCreateUserShowProgress(showId, userId)
 
         val next = logTiming("getNextSegment",log) { playbackService.getNextSegment(channelProgress, showProgress) }
 
@@ -66,16 +60,12 @@ class PlaybackController(
 
         val userId = AuthUtils.getUserId()
 
-        val channelProgress = userChannelProgressRepository
-            .findByChannelIdAndUserId(channelId, userId)
-            ?: userService.createUserChannelProgress(channelId, userId)
+        val channelProgress = userService.getOrCreateUserChannelProgress(channelId, userId)
 
         val showId = channelProgress.currentShowId
             ?: playbackService.resolveCurrentChannelShowId(channelProgress)
 
-        val showProgress = userShowProgressRepository
-            .findByShowIdAndUserId(showId, userId)
-            ?: userService.createUserShowProgress(showId, userId)
+        val showProgress = userService.getOrCreateUserShowProgress(showId, userId)
 
         return logTiming("goToNextEpisode",log) { playbackService.goToNextEpisode(channelProgress, showProgress) }
     }
@@ -85,9 +75,7 @@ class PlaybackController(
         @RequestParam channelId: String,
     ): PlayableDto {
 
-        val channelProgress = userChannelProgressRepository
-            .findByChannelIdAndUserId(channelId, AuthUtils.getUserId())
-            ?: userService.createUserChannelProgress(channelId, AuthUtils.getUserId())
+        val channelProgress =  userService.getOrCreateUserChannelProgress(channelId, AuthUtils.getUserId())
 
         return logTiming("goToNextShow",log) { playbackService.goToNextShow(channelProgress) }
     }
@@ -102,9 +90,7 @@ class PlaybackController(
 
         channelService.disableShow(channelId, request.showIds, userId)
 
-        val channelProgress = userChannelProgressRepository
-            .findByChannelIdAndUserId(channelId, userId)
-            ?: userService.createUserChannelProgress(channelId, userId)
+        val channelProgress = userService.getOrCreateUserChannelProgress(channelId, userId)
 
         return logTiming("Disabling show during PlayBack",log){playbackService.goToNextShow(channelProgress)}
     }
@@ -116,13 +102,9 @@ class PlaybackController(
 
         val userId = AuthUtils.getUserId()
 
-        val channelProgress = userChannelProgressRepository
-            .findByChannelIdAndUserId(request.channelId, userId)
-            ?: userService.createUserChannelProgress(request.channelId, userId)
+        val channelProgress = userService.getOrCreateUserChannelProgress(request.channelId, userId)
 
-        val showProgress = userShowProgressRepository
-            .findByShowIdAndUserId(request.showId, userId)
-            ?: userService.createUserShowProgress(request.showId, userId)
+        val showProgress =  userService.getOrCreateUserShowProgress(request.showId, userId,request.showName)
 
         log.warn("Broken playable → videoId=${request.videoId}, show=${request.showName}")
 

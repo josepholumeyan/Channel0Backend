@@ -24,7 +24,7 @@ class PlaybackService(
     private val episodeRepository: EpisodeRepository,
     private val seasonRepository: SeasonRepository,
     private val channelShowRepository: ChannelShowRepository,
-    private val userService : UserService,
+    private val userService: UserService,
     private val userShowProgressRepository: UserShowProgressRepository,
     private val userChannelShowRepository: UserChannelShowRepository,
     private val userChannelProgressRepository: UserChannelProgressRepository
@@ -38,13 +38,13 @@ class PlaybackService(
      * This function is the primary entry point for show playback progression. It operates
      * using a **staging model**:
      *
-     * - `currentSegmentId` represents the segment that should play **now**.
-     * - `currentSegmentIndex` represents the index used to stage the **next segment**.
+     * - `stagedSegmentId` represents the segment that is staged to play next.
+     * - `stagedSegmentIndex` represents the index used to stage the **next segment**.
      *
      * Workflow:
      * 1. Retrieve all segment IDs for the current episode.
-     * 2. If `currentSegmentId` exists, play that segment.
-     * 3. If it does not exist, reconstruct it using `currentSegmentIndex`.
+     * 2. If `stagedSegmentId` exists, play that segment.
+     * 3. If it does not exist, reconstruct it using `stagedSegmentIndex`.
      * 4. After resolving the current segment, stage the next one by advancing the index.
      * 5. Persist the updated progress state.
      *
@@ -57,7 +57,7 @@ class PlaybackService(
     fun getNextSegment(channelProgress: UserChannelProgress, showProgress: UserShowProgress): PlayableDto {
 
         var segment: SegmentEntity?
-        val showName = userChannelShowRepository.findByShowIdAndUserId(showProgress.showId,showProgress.userId)?.name ?: "Unknown Show"
+        segment = null
         val segmentsForEpisode = segmentRepository.findSegmentIdsByEpisodeId(
             showProgress.currentEpisodeId ?: return goToNextEpisode(
                 channelProgress,
@@ -65,14 +65,10 @@ class PlaybackService(
             )
         )
 
+        if (!segmentsForEpisode.isEmpty()) {
 
-
-
-        if (segmentsForEpisode.isEmpty()) {
-            segment = null
-        } else {
-            val currentSegmentId = showProgress.currentSegmentId
-                ?: segmentsForEpisode.getOrElse(showProgress.currentSegmentIndex++) {
+            val stagedSegmentId = showProgress.stagedSegmentId
+                ?: segmentsForEpisode.getOrElse(showProgress.stagedSegmentIndex++) {
                     return goToNextEpisode(
                         channelProgress,
                         showProgress
@@ -80,11 +76,11 @@ class PlaybackService(
                 }
 
 
-            segment = segmentRepository.findById(currentSegmentId).orElse(null)
+            segment = segmentRepository.findById(stagedSegmentId).orElse(null)
 
 
-            showProgress.currentSegmentIndex++
-            showProgress.currentSegmentId = segmentsForEpisode.getOrNull(showProgress.currentSegmentIndex)
+            showProgress.stagedSegmentIndex++
+            showProgress.stagedSegmentId = segmentsForEpisode.getOrNull(showProgress.stagedSegmentIndex)
 
 
             userShowProgressRepository.save(showProgress)
@@ -92,7 +88,15 @@ class PlaybackService(
 
 
         return if (segment != null) {
-            (PlayableDto(showName = showName, showId = segment.showId, clipShow = false,segment.episode.id, segment.videoId, segment.fallBackVideoId, orderIndex = segment.orderIndex ))
+            (PlayableDto(
+                showName = showProgress.showName,
+                showId = segment.showId,
+                clipShow = false,
+                segment.episode.id,
+                segment.videoId,
+                segment.fallBackVideoId,
+                orderIndex = segment.orderIndex
+            ))
         } else {
             //            Episode is broken
             goToNextEpisode(channelProgress, showProgress)
@@ -179,8 +183,8 @@ class PlaybackService(
 
         // Step 4: Update progress pointers
         showProgress.currentEpisodeId = nextEpisodeId
-        showProgress.currentSegmentIndex = 0
-        showProgress.currentSegmentId = segmentRepository.findSegmentIdsByEpisodeId(nextEpisodeId).getOrNull(0)
+        showProgress.stagedSegmentIndex = 0
+        showProgress.stagedSegmentId = segmentRepository.findSegmentIdsByEpisodeId(nextEpisodeId).getOrNull(0)
         channelProgress.episodesPlayedInCurrentShow++
 
 
@@ -215,7 +219,7 @@ class PlaybackService(
      * and an exception is thrown.
      */
     fun goToNextSeason(showProgress: UserShowProgress): String? {
-        val seasonIdsForShow = seasonRepository.findSeasonIdsByShowId(showProgress.showId)
+        val seasonIdsForShow = seasonRepository.findSeasonIdsByShowId(showProgress.showId) // TODO Cache
         if (seasonIdsForShow.isEmpty()) throw IllegalStateException("Show ${showProgress.showId} has no seasons!")
 
 
@@ -229,9 +233,9 @@ class PlaybackService(
         // Reset episode/segment pointers
         showProgress.currentSeasonId = nextSeasonId
         showProgress.currentEpisodeIndex = 0
-        showProgress.currentSegmentIndex = 0
+        showProgress.stagedSegmentIndex = 0
         showProgress.currentEpisodeId = episodeRepository.findEpisodeIdsBySeasonId(nextSeasonId).getOrNull(0)
-        showProgress.currentSegmentId =
+        showProgress.stagedSegmentId =
             showProgress.currentEpisodeId?.let { segmentRepository.findSegmentIdsByEpisodeId(it).getOrNull(0) }
 
 
@@ -270,13 +274,17 @@ class PlaybackService(
         channelProgress.currentClipShowIndex++
         channelProgress.episodesPlayedInCurrentShow = 0
 
-        val currentClipShow= resolveCurrentChannelShow(channelProgress,true)
+        val currentClipShow = resolveCurrentChannelShow(channelProgress, true)
         val currentShow = resolveCurrentChannelShow(channelProgress)
 
         // Ensure clip show progress exists
         val clipShowProgress =
             userShowProgressRepository.findByShowIdAndUserId(currentClipShow.showId, channelProgress.userId)
-                ?: userService.createUserShowProgress(showId = currentClipShow.showId, channelProgress.userId)
+                ?: userService.getOrCreateUserShowProgress(
+                    showId = currentClipShow.showId,
+                    userId = channelProgress.userId,
+                    showName = currentClipShow.name
+                )
 
         var currentEpisodeId = clipShowProgress.currentEpisodeId
 
@@ -290,15 +298,18 @@ class PlaybackService(
                             //skip to normal show
                             getNextSegment(
                                 channelProgress,
-                                userShowProgressRepository.findByShowIdAndUserId(currentShow.showId,channelProgress.userId)
-                                    ?: userService.createUserShowProgress(showId = currentShow.showId, channelProgress.userId)
+                                userService.getOrCreateUserShowProgress(
+                                    showId = currentShow.showId,
+                                    userId = channelProgress.userId,
+                                    showName = currentClipShow.name
+                                )
                             )
                             )
 
-            val episodesForSeason = episodeRepository.findEpisodeIdsBySeasonId(seasonId)
+            val episodesForSeason = episodeRepository.findEpisodeIdsBySeasonId(seasonId) // TODO Cache
 
             currentEpisodeId =
-                episodesForSeason.getOrElse(clipShowProgress.currentEpisodeIndex){
+                episodesForSeason.getOrElse(clipShowProgress.currentEpisodeIndex) {
                     episodesForSeason[0]
                 }
 
@@ -307,16 +318,17 @@ class PlaybackService(
         }
 
         // Resolve first segment of clip show
-        val firstSegmentId =
-            segmentRepository.findSegmentIdsByEpisodeId(currentEpisodeId).getOrNull(0)
-                ?: return (
-//                        skip to normalShow
-                        getNextSegment(
-                            channelProgress,
-                            userShowProgressRepository.findByShowIdAndUserId(currentShow.showId,channelProgress.userId)
-                                ?: userService.createUserShowProgress(showId = currentShow.showId, channelProgress.userId)
-                        )
-                        )
+        val firstSegmentId = segmentRepository.findSegmentIdsByEpisodeId(currentEpisodeId).getOrNull(0)
+                                ?: return (  // skip to normalShow
+                                    getNextSegment(
+                                        channelProgress,
+                                        userService.getOrCreateUserShowProgress(
+                                            showId = currentShow.showId,
+                                            userId = channelProgress.userId,
+                                            showName = currentShow.name
+                                        )
+                                    )
+                                )
 
         val firstSegment =
             segmentRepository.findById(firstSegmentId).orElseThrow {
@@ -384,7 +396,7 @@ class PlaybackService(
     }
 
     //    wrapper function for when only show id is needed
-    fun resolveCurrentChannelShowId (channelProgress: UserChannelProgress, clip: Boolean = false): String{
-        return resolveCurrentChannelShow(channelProgress,clip).showId
+    fun resolveCurrentChannelShowId(channelProgress: UserChannelProgress, clip: Boolean = false): String {
+        return resolveCurrentChannelShow(channelProgress, clip).showId
     }
 }
